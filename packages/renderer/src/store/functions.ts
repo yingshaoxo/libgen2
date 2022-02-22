@@ -1,6 +1,7 @@
 import { ElLoading, ElMessage } from "element-plus"
 import { BuildPropType } from "element-plus/es/utils/props"
 import { globalDict } from "/@/store/memory"
+import * as myGun from "/@/gun/myGun"
 
 export const functions = {
     basic: {
@@ -38,7 +39,8 @@ export const functions = {
     pages: {
     },
     requests: {
-    }
+    },
+    myGun
 }
 
 export default functions 

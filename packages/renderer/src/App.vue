@@ -1,28 +1,32 @@
 <script setup lang="ts">
-import Gun from 'gun/gun'
-
 import { onMounted, reactive, ref } from 'vue';
 import { ElLoading } from 'element-plus'
 import type { ElForm } from 'element-plus'
+
+import * as types from "/@/store/models";
+import { functions } from "/@/store/functions";
 
 import UploadWidget from '/@/components/UploadWidget.vue';
 
 type FormInstance = InstanceType<typeof ElForm>
 const ruleFormRef = ref<FormInstance>()
 
+const tableDataOneItemTemplate = {
+  author: '',
+  title: '',
+  year: '',
+  language: '',
+  size: '',
+  extension: '',
+  link: ''
+}
+
 const dict = reactive({
-  gun: Gun(['http://localhost:8765/gun']),
+  // gun: Gun(['http://localhost:8765/gun']),
   tempData: {
     keywords: "",
     tableData: [
-      {
-        author: '',
-        title: '',
-        year: '',
-        language: '',
-        size: '',
-        extension: ''
-      }
+      tableDataOneItemTemplate
     ],
     showUploadBookWindow: false,
   },
@@ -54,13 +58,27 @@ const dict = reactive({
     handleFileUploadSubmit: async () => {
       if (!ruleFormRef.value) return
 
-      ruleFormRef.value.validate((valid) => {
+      ruleFormRef.value.validate(async (valid) => {
         if (valid) {
           console.log('submit!')
         } else {
           console.log('error submit!')
         }
       })
+    },
+    search: async () => {
+      functions.myGun.stopSearch()
+
+      functions.myGun.searchBooks(dict.tempData.keywords, async (items: types.BookModel[]) => {
+        dict.tempData.tableData = items.map((item: types.BookModel) => {
+          return {
+            ...tableDataOneItemTemplate,
+            ...item
+          }
+        })
+      })
+    },
+    uploadFile: async () => {
     }
   }
 });
@@ -68,6 +86,7 @@ const dict = reactive({
 onMounted(async () => {
   // dict.functions.loadingStart()
   // dict.functions.loadingStop()
+
 })
 
 </script>
@@ -83,6 +102,7 @@ onMounted(async () => {
   <div class="searchRow">
     <input v-model="dict.tempData.keywords" />
     <button class="searchButton" @click="dict.functions.test">Search!</button>
+    <!-- <button class="searchButton" @click="functions.myGun.addOneRandomData">Add data!</button> -->
   </div>
 
   <div class="resultList">
