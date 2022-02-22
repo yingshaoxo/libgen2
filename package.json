@@ -2,7 +2,7 @@
   "name": "vite-electron-builder",
   "private": true,
   "engines": {
-    "node": ">=v16.13",
+    "node": ">=v16.12",
     "npm": ">=8.1"
   },
   "main": "packages/main/dist/index.cjs",
@@ -17,7 +17,7 @@
     "test:main": "vitest run -r packages/main --passWithNoTests",
     "test:preload": "vitest run -r packages/preload --passWithNoTests",
     "test:renderer": "vitest run -r packages/renderer --passWithNoTests",
-    "watch": "node scripts/watch.js",
+    "dev": "node scripts/watch.js",
     "lint": "eslint . --ext js,ts,vue",
     "typecheck:main": "tsc --noEmit -p packages/main/tsconfig.json",
     "typecheck:preload": "tsc --noEmit -p packages/preload/tsconfig.json",
@@ -44,8 +44,11 @@
     "vue-tsc": "0.31.4"
   },
   "dependencies": {
+    "@types/webtorrent": "^0.109.3",
+    "electron-fetch": "^1.7.4",
     "electron-updater": "4.6.5",
     "element-plus": "^2.0.2",
+    "gun": "github:amark/gun",
     "sass": "^1.49.8",
     "vue": "3.2.31"
   }

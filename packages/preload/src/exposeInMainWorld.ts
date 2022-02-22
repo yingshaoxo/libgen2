@@ -1,4 +1,5 @@
-import {contextBridge} from 'electron';
+import { Exposed } from 'contracts';
+import { contextBridge } from 'electron';
 
 /**
  * Typesafe wrapper for `electron.contextBridge.exposeInMainWorld`.
@@ -11,3 +12,5 @@ import {contextBridge} from 'electron';
 export function exposeInMainWorld<T extends keyof Exposed & string>(key: T, api: Exposed[T]) {
   return contextBridge.exposeInMainWorld(key, api);
 }
+
+

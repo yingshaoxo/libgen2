@@ -1,8 +1,8 @@
 /* eslint-env node */
 
-import {chrome} from '../../.electron-vendors.cache.json';
-import {join} from 'path';
-import {builtinModules} from 'module';
+import { chrome } from '../../.electron-vendors.cache.json';
+import { join } from 'path';
+import { builtinModules } from 'module';
 import vue from '@vitejs/plugin-vue';
 
 const PACKAGE_ROOT = __dirname;
@@ -20,6 +20,9 @@ const config = {
     },
   },
   plugins: [vue()],
+  optimizeDeps: {
+    exclude: ['totalist', 'sirv', 'local-access']
+  },
   base: '',
   server: {
     fs: {

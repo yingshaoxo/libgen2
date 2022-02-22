@@ -1,7 +1,17 @@
 <script setup lang="ts">
-import { reactive } from 'vue';
+import Gun from 'gun/gun'
 
-let dict = reactive({
+import { onMounted, reactive, ref } from 'vue';
+import { ElLoading } from 'element-plus'
+import type { ElForm } from 'element-plus'
+
+import UploadWidget from '/@/components/UploadWidget.vue';
+
+type FormInstance = InstanceType<typeof ElForm>
+const ruleFormRef = ref<FormInstance>()
+
+const dict = reactive({
+  gun: Gun(['http://localhost:8765/gun']),
   tempData: {
     keywords: "",
     tableData: [
@@ -13,17 +23,66 @@ let dict = reactive({
         size: '',
         extension: ''
       }
-    ]
+    ],
+    showUploadBookWindow: false,
   },
+  forms: {
+    uploadingFile: {
+      title: '',
+      author: '',
+      file: null as File | null,
+    },
+  },
+  rules:
+  {
+    uploadingFile: {
+      title: [
+        { required: true, message: 'Please input the title of the book', trigger: 'blur' },
+      ],
+      author: [
+        { required: true, message: 'Please input the author of the book', trigger: 'blur' },
+      ],
+      file: [
+        { required: true, message: 'Please upload the book', trigger: 'change' },
+      ],
+    },
+  },
+  functions: {
+    test: async () => {
+      console.log('test')
+    },
+    handleFileUploadSubmit: async () => {
+      if (!ruleFormRef.value) return
+
+      ruleFormRef.value.validate((valid) => {
+        if (valid) {
+          console.log('submit!')
+        } else {
+          console.log('error submit!')
+        }
+      })
+    }
+  }
 });
+
+onMounted(async () => {
+  // dict.functions.loadingStart()
+  // dict.functions.loadingStop()
+})
+
 </script>
 
 <template>
-  <div class="LibraryGenesisTitle">Library Genesis 2</div>
+  <div class="LibraryGenesisTitle">
+    Library Genesis
+    <span @dblclick="
+      dict.tempData.showUploadBookWindow = true
+    ">2</span>
+  </div>
 
   <div class="searchRow">
     <input v-model="dict.tempData.keywords" />
-    <button class="searchButton">Search!</button>
+    <button class="searchButton" @click="dict.functions.test">Search!</button>
   </div>
 
   <div class="resultList">
@@ -36,6 +95,44 @@ let dict = reactive({
       <el-table-column prop="extension" label="Extension" />
     </el-table>
   </div>
+
+  <el-dialog v-model="dict.tempData.showUploadBookWindow" title="Epub/PDF Uploader" width="70%">
+    <el-form
+      ref="ruleFormRef"
+      label-position="top"
+      :model="dict.forms.uploadingFile"
+      :rules="dict.rules.uploadingFile"
+    >
+      <el-form-item label="Name" prop="title">
+        <el-input
+          :style="{ width: 80 }"
+          v-model="dict.forms.uploadingFile.title"
+          type="text"
+          autocomplete="off"
+        ></el-input>
+      </el-form-item>
+      <el-form-item label="Author" prop="author">
+        <el-input
+          :style="{ width: 80 }"
+          v-model="dict.forms.uploadingFile.author"
+          type="text"
+          autocomplete="off"
+        ></el-input>
+      </el-form-item>
+      <el-form-item label="File" prop="file">
+        <div class="Center FullSize">
+          <UploadWidget v-model:file="dict.forms.uploadingFile.file"></UploadWidget>
+        </div>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <span class="dialog-footer">
+        <div class="flexCenter">
+          <el-button type="primary" @click="dict.functions.handleFileUploadSubmit">Confirm Upload</el-button>
+        </div>
+      </span>
+    </template>
+  </el-dialog>
 </template>
 
 <style lang="scss">
@@ -76,5 +173,32 @@ let dict = reactive({
 
 .resultList {
   margin-top: 60px;
+}
+
+.flexCenter {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+@mixin _center() {
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  align-items: center;
+}
+
+.Center {
+  @include _center();
+}
+
+@mixin _fullSize {
+  width: 100%;
+  height: 100%;
+}
+
+.FullSize {
+  @include _fullSize();
 }
 </style>
