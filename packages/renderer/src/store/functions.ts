@@ -5,6 +5,11 @@ import * as myGun from "/@/gun/myGun"
 
 export const functions = {
     basic: {
+        runAsyncFunction: (func: any) => {
+            (async () => {
+                await func()
+            })();
+        },
         jsonToObj(json: string) {
             return JSON.parse(json)
         },

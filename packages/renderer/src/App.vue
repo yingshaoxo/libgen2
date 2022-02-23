@@ -22,7 +22,6 @@ const tableDataOneItemTemplate = {
 }
 
 const dict = reactive({
-  // gun: Gun(['http://localhost:8765/gun']),
   tempData: {
     keywords: "",
     tableData: [
@@ -55,60 +54,102 @@ const dict = reactive({
     test: async () => {
       console.log('test')
     },
-    handleFileUploadSubmit: async () => {
+    pushNewBookToViewDataList: async (book: types.BookModel) => {
+      dict.tempData.tableData.push(
+        {
+          ...tableDataOneItemTemplate,
+          ...book
+        }
+      )
+    },
+    replaceOldViewDataList: async (books: types.BookModel[]) => {
+      dict.tempData.tableData = books.map((item: types.BookModel) => {
+        return {
+          ...tableDataOneItemTemplate,
+          ...item
+        }
+      })
+    },
+    uploadFile: async () => {
+      functions.myGun.addABook({
+        title: dict.forms.uploadingFile.title,
+        author: dict.forms.uploadingFile.author,
+        link: '',
+      })
+      dict.tempData.showUploadBookWindow = false
+    },
+    handleFileUploadSubmit: () => {
       if (!ruleFormRef.value) return
 
       ruleFormRef.value.validate(async (valid) => {
         if (valid) {
+          dict.functions.uploadFile()
           console.log('submit!')
         } else {
           console.log('error submit!')
         }
       })
     },
-    search: async () => {
-      functions.myGun.stopSearch()
+    keepUpdateBookList: () => {
+      functions.myGun.listenToTheTable(async (book: types.BookModel) => {
+        console.log(book)
 
-      functions.myGun.searchBooks(dict.tempData.keywords, async (items: types.BookModel[]) => {
-        dict.tempData.tableData = items.map((item: types.BookModel) => {
-          return {
-            ...tableDataOneItemTemplate,
-            ...item
-          }
+        let result = dict.tempData.tableData.filter((item: types.BookModel) => {
+          return item?.id === book?.id
         })
+        if (result.length == 0) {
+          dict.functions.pushNewBookToViewDataList(book)
+        }
       })
     },
-    uploadFile: async () => {
-    }
+    stopUpdateBookList: () => {
+      functions.myGun.stopListening()
+    },
+    search: async () => {
+      functions.myGun.getAllData(async (books) => {
+        dict.functions.replaceOldViewDataList(books)
+        console.log('get all data', books)
+      })
+    },
   }
 });
 
 onMounted(async () => {
-  // dict.functions.loadingStart()
-  // dict.functions.loadingStop()
+  dict.functions.search()
 
+  dict.functions.keepUpdateBookList()
 })
 
 </script>
 
 <template>
-  <div class="LibraryGenesisTitle">
-    Library Genesis
-    <span @dblclick="
+  <div
+    class="TopLeftPageHalfCircleButton verticalCenter"
+    @click="functions.myGun.clearTheTable"
+  >Reset</div>
+
+  <div
+    class="TopRightPageHalfCircleButton verticalCenter"
+    @click="
       dict.tempData.showUploadBookWindow = true
-    ">2</span>
-  </div>
+    "
+  >Upload</div>
+
+  <div class="LibraryGenesisTitle">Library Genesis 2</div>
 
   <div class="searchRow">
     <input v-model="dict.tempData.keywords" />
-    <button class="searchButton" @click="dict.functions.test">Search!</button>
-    <!-- <button class="searchButton" @click="functions.myGun.addOneRandomData">Add data!</button> -->
+    <button class="searchButton" @click="dict.functions.search">Search!</button>
+    <!-- <button class="searchButton" @click="functions.myGun.addOneRandomData">Add data!</button>
+    <button class="searchButton" @click="functions.myGun.getAllData">Get data!</button>
+    <button class="searchButton" @click="functions.myGun.stopListening">Stop!</button>
+    <button class="searchButton" @click="functions.myGun.clearTheTable">Clear!</button>-->
   </div>
 
   <div class="resultList">
     <el-table :data="dict.tempData.tableData" style="width: 100%">
       <el-table-column prop="author" label="Author" min-width="100" />
-      <el-table-column prop="title" label="Title" min-width="400" />
+      <el-table-column prop="title" label="Title" min-width="200" />
       <el-table-column prop="year" label="Year" />
       <el-table-column prop="language" label="Language" />
       <el-table-column prop="size" label="Size" />
@@ -116,7 +157,12 @@ onMounted(async () => {
     </el-table>
   </div>
 
-  <el-dialog v-model="dict.tempData.showUploadBookWindow" title="Epub/PDF Uploader" width="70%">
+  <el-dialog
+    v-model="dict.tempData.showUploadBookWindow"
+    title="Epub/PDF Uploader"
+    width="70%"
+    :destroy-on-close="true"
+  >
     <el-form
       ref="ruleFormRef"
       label-position="top"
@@ -220,5 +266,41 @@ onMounted(async () => {
 
 .FullSize {
   @include _fullSize();
+}
+
+.TopRightPageHalfCircleButton {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 45px;
+  height: 20px;
+  background-color: #669e1d;
+  color: #fff;
+  font-size: 10px;
+  text-align: center;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.verticalCenter {
+  display: flex;
+  justify-content: center;
+  justify-items: center;
+  align-items: center;
+  align-content: center;
+}
+
+.TopLeftPageHalfCircleButton {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 45px;
+  height: 20px;
+  background-color: #c2c2c2;
+  color: #fff;
+  font-size: 10px;
+  text-align: center;
+  cursor: pointer;
+  opacity: 0.01;
 }
 </style>
